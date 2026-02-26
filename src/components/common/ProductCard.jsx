@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform } from 'framer-motion';
 import { ShoppingCart, Star, Eye, Heart } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 
@@ -9,6 +9,7 @@ const ProductCard = ({ product, index }) => {
     const [isHovered, setIsHovered] = useState(false);
     const { addToCart } = useCart();
     const { isInWishlist, toggleWishlist } = useWishlist();
+    const navigate = useNavigate();
 
     // 3D Tilt effect
     const x = useMotionValue(0);
@@ -122,7 +123,11 @@ const ProductCard = ({ product, index }) => {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => addToCart(product, product.sizes[0])}
+                        onClick={() => {
+                            const size = product.sizes ? product.sizes[0] : 'Standard';
+                            addToCart(product, size);
+                            navigate('/checkout');
+                        }}
                         className="flex items-center gap-3 bg-foreground text-background px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-accent hover:text-white"
                     >
                         <ShoppingCart size={16} />

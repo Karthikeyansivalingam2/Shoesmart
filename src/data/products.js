@@ -11,7 +11,8 @@ export const products = [
         isNew: true,
         stock: 45,
         description: "Experience the legendary comfort and response of the Pegasus 40. Perfect for daily runs and marathon training.",
-        features: ["Zoom Air units", "Breathable mesh upper", "Responsive foam", "Rubber waffle outsole"]
+        features: ["Zoom Air units", "Breathable mesh upper", "Responsive foam", "Rubber waffle outsole"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 2,
@@ -25,7 +26,8 @@ export const products = [
         isNew: false,
         stock: 30,
         description: "The lightest Ultraboost ever made. Experience ultimate energy return and comfort.",
-        features: ["BOOST technology", "Primeknit+ upper", "Lightweight design", "Continental™ Rubber outsole"]
+        features: ["BOOST technology", "Primeknit+ upper", "Lightweight design", "Continental™ Rubber outsole"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 3,
@@ -39,7 +41,8 @@ export const products = [
         isNew: true,
         stock: 25,
         description: "A retro-futuristic silhouette that redefined casual style. Chunky design with maximum comfort.",
-        features: ["Running System tech", "Mesh and suede upper", "Padded collar", "Lightweight midsole"]
+        features: ["Running System tech", "Mesh and suede upper", "Padded collar", "Lightweight midsole"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 4,
@@ -53,7 +56,8 @@ export const products = [
         isNew: false,
         stock: 60,
         description: "Heavy-duty outdoor shoes built for the toughest terrains in India. Genuine leather for durability.",
-        features: ["Genuine Leather", "High-grip rubber sole", "Water-resistant", "Cushioned insole"]
+        features: ["Genuine Leather", "High-grip rubber sole", "Water-resistant", "Cushioned insole"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 5,
@@ -67,7 +71,8 @@ export const products = [
         isNew: false,
         stock: 120,
         description: "Classic formal derby shoes from India's most trusted footwear brand. Perfect for office and events.",
-        features: ["Synthetic upper", "Soft footbed", "Durable PVC sole", "Elegant finish"]
+        features: ["Synthetic upper", "Soft footbed", "Durable PVC sole", "Elegant finish"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 6,
@@ -81,7 +86,8 @@ export const products = [
         isNew: true,
         stock: 200,
         description: "Affordable and durable sports shoes for active Indian youth. High-performance design.",
-        features: ["Lightweight mesh", "Anti-skid sole", "Pylon midsole", "Trendy colors"]
+        features: ["Lightweight mesh", "Anti-skid sole", "Pylon midsole", "Trendy colors"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 7,
@@ -95,7 +101,8 @@ export const products = [
         isNew: false,
         stock: 85,
         description: "The world-famous comfort clogs. Waterproof and incredibly light for daily wear.",
-        features: ["Croslite™ foam", "Water-friendly", "Easy to clean", "Pivoting heel straps"]
+        features: ["Croslite™ foam", "Water-friendly", "Easy to clean", "Pivoting heel straps"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 8,
@@ -109,7 +116,8 @@ export const products = [
         isNew: true,
         stock: 55,
         description: "Memory foam equipped sneakers for superior walking comfort. Stylish and modern.",
-        features: ["Memory Foam insole", "Breathable knit", "EVA sole", "Sock-like fit"]
+        features: ["Memory Foam insole", "Breathable knit", "EVA sole", "Sock-like fit"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 9,
@@ -123,7 +131,8 @@ export const products = [
         isNew: false,
         stock: 300,
         description: "Super soft daily wear flip flops. Built for the Indian climate and everyday comfort.",
-        features: ["Soft rubber strap", "Non-slip sole", "Flexible design", "Lightweight"]
+        features: ["Soft rubber strap", "Non-slip sole", "Flexible design", "Lightweight"],
+        sizes: [7, 8, 9, 10, 11]
     },
     {
         id: 10,

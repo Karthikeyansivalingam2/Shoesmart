@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { products } from '../data/products';
 import { useCart } from '../context/CartContext';
@@ -9,6 +9,7 @@ import ProductCard from '../components/common/ProductCard';
 const ProductDetail = () => {
     const { id } = useParams();
     const { addToCart, setIsCartOpen } = useCart();
+    const navigate = useNavigate();
     const [product, setProduct] = useState(null);
     const [selectedSize, setSelectedSize] = useState(null);
     const [activeTab, setActiveTab] = useState('description');
@@ -18,7 +19,7 @@ const ProductDetail = () => {
         const foundProduct = products.find(p => p.id === parseInt(id));
         if (foundProduct) {
             setProduct(foundProduct);
-            setSelectedSize(foundProduct.sizes[0]);
+            setSelectedSize(foundProduct.sizes ? foundProduct.sizes[0] : 'Standard');
         }
         window.scrollTo(0, 0);
     }, [id]);
@@ -93,7 +94,7 @@ const ProductDetail = () => {
                                 <button className="text-[10px] font-black underline uppercase tracking-widest">Size Guide</button>
                             </div>
                             <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-                                {product.sizes.map(size => (
+                                {product.sizes && product.sizes.map(size => (
                                     <button
                                         key={size}
                                         onClick={() => setSelectedSize(size)}
@@ -115,7 +116,8 @@ const ProductDetail = () => {
                                 whileTap={{ scale: 0.98 }}
                                 onClick={() => {
                                     addToCart(product, selectedSize);
-                                    setIsCartOpen(true);
+                                    setIsCartOpen(false); // Close drawer if it was going to open
+                                    navigate('/checkout');
                                 }}
                                 className="flex-grow bg-accent text-white py-5 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-accent/20"
                             >
