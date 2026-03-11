@@ -1,0 +1,85 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    /* Pure White */
+    --foreground: 0 0% 9%;
+    /* Almost Black */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    /* Very Light Gray */
+    --secondary-foreground: 0 0% 9%;
+    --accent: 0 0% 9%;
+    /* Minimalist Black Accent */
+    --accent-foreground: 0 0% 100%;
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    /* Very Dark Gray/Black */
+    --foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --accent: 0 0% 98%;
+    /* White Accent for Dark Mode */
+    --accent-foreground: 0 0% 9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-secondary;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    overflow-x: hidden;
+  }
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply bg-background/60 backdrop-blur-md border border-foreground/10;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-foreground/20 rounded-full hover:bg-foreground/30 transition-colors;
+}
+
+/* Page transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Text Mask */
+.text-mask {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
