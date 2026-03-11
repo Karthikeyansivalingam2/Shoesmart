@@ -11,7 +11,7 @@ const Products = () => {
     const [priceRange, setPriceRange] = useState(20000);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-    const categories = ['All', 'Men', 'Women', 'Kids', 'Boy Baby', 'Girl Baby', 'Slippers'];
+    const categories = ['All', 'Men', 'Women', 'Kids', 'Toddlers', 'Slippers'];
 
     const filteredProducts = useMemo(() => {
         return products.filter(p => {
