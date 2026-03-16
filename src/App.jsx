@@ -24,6 +24,7 @@ const Signup = lazy(() => import('./pages/Signup'));
 const Wishlist = lazy(() => import('./pages/Wishlist'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
 const DeliveryDashboard = lazy(() => import('./pages/delivery/DeliveryDashboard'));
 
 function AnimatedRoutes() {
@@ -62,6 +63,7 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route
           path="/delivery"
           element={
@@ -77,10 +79,13 @@ function AnimatedRoutes() {
 
 function MainLayout() {
   const { toast, setToast } = useCart();
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
+
   return (
     <div className="min-vh-100 flex flex-col transition-colors duration-300">
       <ScrollToTop />
-      <Navbar />
+      {!isAdminPath && <Navbar />}
       <CartDrawer />
       <Toast
         message={toast.message}
@@ -92,7 +97,7 @@ function MainLayout() {
           <AnimatedRoutes />
         </Suspense>
       </main>
-      <Footer />
+      {!isAdminPath && <Footer />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, ArrowRight } from 'lucide-react';
 
 const Footer = () => {
@@ -62,6 +63,15 @@ const Footer = () => {
                                     </motion.a>
                                 </li>
                             ))}
+                            {/* Admin Links */}
+                            <li>
+                                <Link
+                                    to="/admin/login"
+                                    className="text-foreground/60 hover:text-accent transition-colors block"
+                                >
+                                    Admin Portal
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 

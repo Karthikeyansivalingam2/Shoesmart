@@ -1,25 +1,43 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, Github, Chrome } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Github, Chrome, Shield, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+
 
 const Login = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login } = useAuth();
+    const { login, user } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
 
     const from = location.state?.from?.pathname || '/profile';
 
+    // Redirect if already logged in
+    React.useEffect(() => {
+        if (user) {
+            const target = user.role === 'admin' ? '/admin' : '/profile';
+            navigate(target, { replace: true });
+        }
+    }, [user, navigate]);
+
+
     const handleSubmit = (e) => {
         e.preventDefault();
+        
+        // Determine role for redirection
+        let nextRole = 'customer';
+        if (formData.email === 'admin' && formData.password === 'admin123') nextRole = 'admin';
+        else if (formData.email.includes('admin')) nextRole = 'admin';
+        
         login({
             email: formData.email,
             password: formData.password,
             name: formData.email.split('@')[0]
         });
-        navigate(from, { replace: true });
+
+        const target = nextRole === 'admin' ? '/admin' : from;
+        navigate(target, { replace: true });
     };
 
     return (
@@ -95,18 +113,12 @@ const Login = () => {
                             <span className="relative px-4 bg-background text-[10px] font-black uppercase tracking-widest text-foreground/20">or continue with</span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                             <button
                                 type="button"
                                 className="flex items-center justify-center gap-3 py-4 bg-secondary/50 rounded-2xl hover:bg-foreground/5 transition-colors font-bold text-xs uppercase tracking-widest"
                             >
                                 <Chrome size={18} /> Google
-                            </button>
-                            <button
-                                type="button"
-                                className="flex items-center justify-center gap-3 py-4 bg-secondary/50 rounded-2xl hover:bg-foreground/5 transition-colors font-bold text-xs uppercase tracking-widest"
-                            >
-                                <Github size={18} /> Github
                             </button>
                         </div>
 
@@ -114,20 +126,7 @@ const Login = () => {
                         <div className="mt-8 pt-8 border-t border-foreground/5 text-center">
                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-foreground/20 mb-6">Quick Access Roles</p>
                             <div className="flex flex-wrap justify-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ email: 'admin', password: 'admin123' })}
-                                    className="px-4 py-2 rounded-xl bg-accent/10 text-accent text-[9px] font-black uppercase tracking-widest hover:bg-accent hover:text-white transition-all border border-accent/20"
-                                >
-                                    Admin (Fill)
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ email: 'delivery', password: 'delivery123' })}
-                                    className="px-4 py-2 rounded-xl bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all border border-blue-500/20"
-                                >
-                                    Delivery (Fill)
-                                </button>
+
                                 <button
                                     type="button"
                                     onClick={() => setFormData({ email: 'customer@test.com', password: 'password' })}
@@ -145,6 +144,16 @@ const Login = () => {
                             Create one
                         </Link>
                     </p>
+
+                    <div className="mt-12 pt-8 border-t border-foreground/5 flex flex-col gap-6 items-center">
+                        <Link to="/admin/login" className="flex items-center justify-center gap-3 text-[10px] font-black text-foreground/40 uppercase tracking-[0.4em] hover:text-accent transition-all group">
+                            <Shield size={14} className="group-hover:rotate-12 transition-transform text-accent" /> Administrative Terminal
+                        </Link>
+                        <div className="h-px w-20 bg-foreground/5" />
+                        <Link to="/" className="text-[9px] font-black text-foreground/10 uppercase tracking-[0.6em] hover:text-foreground transition-all flex items-center gap-2 group">
+                            <Globe size={12} className="group-hover:scale-110 transition-transform" /> Back to Storefront
+                        </Link>
+                    </div>
                 </motion.div>
             </div>
         </motion.div>

@@ -81,7 +81,7 @@ const Navbar = () => {
                     </button>
 
                     {isAuthenticated ? (
-                        <Link to="/profile" className="flex items-center gap-2 hover:text-accent transition-colors group">
+                        <Link to={user.role === 'admin' ? "/admin" : "/profile"} className="flex items-center gap-2 hover:text-accent transition-colors group">
                             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-[10px] font-black text-white shadow-lg border border-background">
                                 {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                             </div>

@@ -13,6 +13,13 @@ const Profile = () => {
     const navigate = useNavigate();
     const [activeView, setActiveView] = useState('overview');
 
+    // Redirect admins directly to the command panel
+    React.useEffect(() => {
+        if (user?.role === 'admin') {
+            navigate('/admin', { replace: true });
+        }
+    }, [user, navigate]);
+
     if (!user) {
         navigate('/login');
         return null;
