@@ -6,13 +6,29 @@ import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { signup } = useAuth();
     const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        login({ name: formData.name, email: formData.email });
-        navigate('/profile');
+        setError('');
+        
+        if (formData.password !== formData.confirmPassword) {
+            setError('Passwords do not match');
+            return;
+        }
+
+        try {
+            await signup({ 
+                name: formData.name, 
+                email: formData.email, 
+                password: formData.password 
+            });
+            navigate('/profile');
+        } catch (err) {
+            setError(err.message);
+        }
     };
 
     return (
@@ -39,6 +55,11 @@ const Signup = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center">
+                                {error}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 flex items-center gap-2 ml-1">
                                 <User size={12} /> Full Name

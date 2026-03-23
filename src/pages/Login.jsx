@@ -10,6 +10,7 @@ const Login = () => {
     const location = useLocation();
     const { login, user } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
+    const [error, setError] = useState('');
 
     const from = location.state?.from?.pathname || '/profile';
 
@@ -22,22 +23,20 @@ const Login = () => {
     }, [user, navigate]);
 
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         
-        // Determine role for redirection
-        let nextRole = 'customer';
-        if (formData.email === 'admin' && formData.password === 'admin123') nextRole = 'admin';
-        else if (formData.email.includes('admin')) nextRole = 'admin';
-        
-        login({
-            email: formData.email,
-            password: formData.password,
-            name: formData.email.split('@')[0]
-        });
-
-        const target = nextRole === 'admin' ? '/admin' : from;
-        navigate(target, { replace: true });
+        try {
+            const result = await login({
+                email: formData.email,
+                password: formData.password
+            });
+            const target = result.role === 'admin' ? '/admin' : from;
+            navigate(target, { replace: true });
+        } catch (err) {
+            setError(err.message);
+        }
     };
 
     return (
@@ -64,6 +63,11 @@ const Login = () => {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {error && (
+                            <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-center">
+                                {error}
+                            </div>
+                        )}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase tracking-widest text-foreground/40 flex items-center gap-2 ml-1">
                                 <Mail size={12} /> Email Address

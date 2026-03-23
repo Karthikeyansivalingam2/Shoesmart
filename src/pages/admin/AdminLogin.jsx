@@ -7,7 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 const AdminLogin = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { login, user } = useAuth();
+    const { directLogin, user } = useAuth();
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
 
@@ -22,9 +22,9 @@ const AdminLogin = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Force admin login logic
-        if (formData.email === 'admin' && formData.password === 'admin123') {
-            login({ email: 'admin', password: 'admin123', name: 'Super Admin' });
+        // Force admin login logic - added toLowerCase() to handle case issue
+        if (formData.email.toLowerCase() === 'admin' && formData.password === 'admin123') {
+            directLogin({ email: 'admin', role: 'admin', name: 'Super Admin' });
             navigate(from, { replace: true });
         } else {
             setError('ACCESS DENIED: Invalid Administrative Credentials');
@@ -62,7 +62,7 @@ const AdminLogin = () => {
                                     type="text"
                                     required
                                     placeholder="ADMIN_ID"
-                                    className="w-full bg-black/[0.03] border-2 border-transparent rounded-[1.5rem] pl-16 pr-6 py-6 text-[13px] font-black uppercase tracking-widest text-black focus:outline-none focus:border-[#D11919]/20 focus:bg-white transition-all placeholder:text-black/10 shadow-inner"
+                                    className="w-full bg-black/[0.03] border-2 border-transparent rounded-[1.5rem] pl-16 pr-6 py-6 text-[13px] font-black tracking-widest text-black focus:outline-none focus:border-[#D11919]/20 focus:bg-white transition-all placeholder:text-black/10 shadow-inner"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />

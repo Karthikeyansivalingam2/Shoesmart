@@ -5,7 +5,7 @@ import {
     LogOut, MessageSquare, BarChart, FileText, CheckCircle, Clock,
     Search, Bell, Settings, ChevronRight, TrendingUp, TrendingDown,
     ArrowUpRight, List, Grid, Calendar, Plus, Trash2, Edit3, Filter,
-    MoreVertical, ExternalLink, Activity, Shield, Terminal
+    MoreVertical, ExternalLink, Activity, Shield, Terminal, EyeOff, X
 } from 'lucide-react';
 import { products as initialProducts } from '../../data/products';
 import { Link, useNavigate } from 'react-router-dom';
@@ -18,45 +18,110 @@ const AdminDashboard = () => {
     const [products, setProducts] = useState(initialProducts);
     const [searchQuery, setSearchQuery] = useState('');
     const [liveOrders, setLiveOrders] = useState(24);
+    
+    // Add Product Modal State
+    const [isAddProductOpen, setIsAddProductOpen] = useState(false);
+    const [newProduct, setNewProduct] = useState({ name: '', brand: '', price: '', stock: '', category: '', image: '' });
+
+    const handleAddProduct = (e) => {
+        e.preventDefault();
+        const p = {
+            id: 'PROD-' + Date.now(),
+            ...newProduct,
+            isNew: true
+        };
+        setProducts([p, ...products]);
+        setIsAddProductOpen(false);
+        setNewProduct({ name: '', brand: '', price: '', stock: '', category: '', image: '' });
+    };
+
+    const toggleProductStatus = (id) => {
+        setProducts(products.map(p => p.id === id ? { ...p, disabled: !p.disabled } : p));
+    };
 
     // Dynamic Orders State
-    const [recentOrders, setRecentOrders] = useState([
-        { id: '#MAG-9482', customer: 'Rahul Sharma', amount: '12,499', status: 'Delivered', time: '2m ago' },
-        { id: '#MAG-9481', customer: 'Priya Singh', amount: '4,899', status: 'Shipped', time: '15m ago' },
-        { id: '#MAG-9480', customer: 'Amit Patel', amount: '2,999', status: 'Processing', time: '1h ago' },
-        { id: '#MAG-9479', customer: 'Neha Gupta', amount: '9,250', status: 'Pending', time: '3h ago' },
-    ]);
-
-    // System Logs State
+    const [recentOrders, setRecentOrders] = useState([]);
+    const [customers, setCustomers] = useState([]);
+    const [adminStats, setAdminStats] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [logs, setLogs] = useState([
-        'PAYMENT_SUCCESS: #4029', 
-        'INVENTORY_SYNC: 142 items', 
-        'SSL_HANDSHAKE: OK'
+        'PAYMENT_SUCCESS: CLUSTER_0', 
+        'INVENTORY_SYNC: REAL_TIME', 
+        'DATABASE_LINK: ACTIVE'
     ]);
 
-    // Dynamic stats animation
-    const [currentRevenue, setCurrentRevenue] = useState(245000);
+    // Fetch Admin Data
     useEffect(() => {
-        const interval = setInterval(() => {
-            setCurrentRevenue(prev => prev + Math.floor(Math.random() * 50));
-            setLiveOrders(prev => prev + (Math.random() > 0.8 ? 1 : 0));
-        }, 3000);
-        return () => clearInterval(interval);
-    }, []);
+        const fetchAdminData = async () => {
+            console.log('Fetching Admin Data with token:', user?.token?.slice(0, 10) + '...');
+            try {
+                const headers = { 
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                };
+
+                // Fetch Orders
+                const ordersRes = await fetch('http://localhost:5000/api/orders/all', { headers });
+                const ordersData = await ordersRes.json();
+                console.log('Orders Data:', ordersData);
+                if (ordersRes.ok) setRecentOrders(ordersData);
+
+                // Fetch Customers
+                const usersRes = await fetch('http://localhost:5000/api/auth/users', { headers });
+                const usersData = await usersRes.json();
+                console.log('Users Data:', usersData);
+                if (usersRes.ok) setCustomers(usersData);
+
+                // Fetch Stats
+                const statsRes = await fetch('http://localhost:5000/api/orders/stats', { headers });
+                const statsData = await statsRes.json();
+                console.log('Stats Data:', statsData);
+                if (statsRes.ok) setAdminStats(statsData);
+
+                // Fetch Products from DB
+                const productsRes = await fetch('http://localhost:5000/api/products');
+                const productsData = await productsRes.json();
+                console.log('Products Data:', productsData);
+                if (productsRes.ok) setProducts(productsData);
+
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching admin data:', error);
+                setLoading(false);
+            }
+        };
+
+        if (user?.token) {
+            fetchAdminData();
+        }
+    }, [user?.token]);
+
+    const handleAcceptOrder = async (orderId) => {
+        try {
+            const res = await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: { 
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: 'Shipped' })
+            });
+            if (res.ok) {
+                setRecentOrders(prev => prev.map(order => 
+                    order._id === orderId ? { ...order, status: 'Shipped' } : order
+                ));
+            }
+        } catch (error) {
+            console.error('Error updating order status:', error);
+        }
+    };
 
     const stats = [
-        { label: 'Net Revenue', value: `₹${currentRevenue.toLocaleString()}`, change: '+12.5%', isPositive: true, icon: ShoppingBag, color: '#D11919' },
-        { label: 'Active Orders', value: liveOrders.toString(), change: '+8.2%', isPositive: true, icon: Package, color: '#3B82F6' },
-        { label: 'Total Users', value: '8,432', change: '-2.4%', isPositive: false, icon: Users, color: '#10B981' },
+        { label: 'Net Revenue', value: `₹${adminStats?.totalRevenue?.toLocaleString() || '0'}`, change: '+12.5%', isPositive: true, icon: ShoppingBag, color: '#D11919' },
+        { label: 'Active Orders', value: adminStats?.pendingOrders?.toString() || recentOrders.length.toString() || '0', change: '+8.2%', isPositive: true, icon: Package, color: '#3B82F6' },
+        { label: 'Total Users', value: (customers?.length || 0).toString(), change: '+2.4%', isPositive: true, icon: Users, color: '#10B981' },
         { label: 'Conversion', value: '3.24%', change: '+1.1%', isPositive: true, icon: BarChart, color: '#8B5CF6' },
     ];
-
-    const handleAcceptOrder = (orderId) => {
-        setRecentOrders(prev => prev.map(order => 
-            order.id === orderId ? { ...order, status: 'Shipped', time: 'Just now' } : order
-        ));
-        setLogs(prev => [`ORDER_ACCEPTED: ${orderId}`, ...prev].slice(0, 5));
-    };
 
     const menuItems = [
         { group: 'Terminal', items: [
@@ -71,147 +136,35 @@ const AdminDashboard = () => {
         ]},
     ];
 
-    // --- INTERACTIVE SUB-COMPONENTS ---
-
-    const AnimatedCounter = ({ value, prefix = "" }) => {
-        const [count, setCount] = useState(0);
-        useEffect(() => {
-            let start = 0;
-            const end = parseInt(value.toString().replace(/[^0-9]/g, "")) || 0;
-            const duration = 1500;
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                setCount(Math.floor(progress * end));
-                if (progress < 1) window.requestAnimationFrame(step);
-            };
-            window.requestAnimationFrame(step);
-        }, [value]);
-        return <span>{prefix}{count.toLocaleString()}</span>;
-    };
-
-    const LiveChart = () => {
-        const [hoveredIndex, setHoveredIndex] = useState(null);
-        const dataPoints = [
-            { x: 0, y: 80, val: '₹12k' }, 
-            { x: 80, y: 40, val: '₹28k' }, 
-            { x: 160, y: 65, val: '₹22k' }, 
-            { x: 240, y: 25, val: '₹45k' }, 
-            { x: 320, y: 55, val: '₹31k' }, 
-            { x: 400, y: 15, val: '₹58k' }
-        ];
-
-        return (
-            <div className="relative h-64 w-full mt-10 p-8 bg-black/[0.02] rounded-[2.5rem] border border-black/5 overflow-hidden group">
-                {/* Background Grid Lines */}
-                <div className="absolute inset-0 flex flex-col justify-between p-10 pointer-events-none opacity-30">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="w-full h-px bg-black/5" />)}
-                </div>
-                
-                <svg viewBox="0 0 400 100" className="w-full h-full preserve-3d relative z-10 overflow-visible">
-                    {/* Shadow Area */}
-                    <motion.path
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 0.1 }}
-                        d="M0,80 L80,40 L160,65 L240,25 L320,55 L400,15 V100 H0 Z"
-                        fill="#D11919"
-                    />
-                    
-                    {/* Main Line */}
-                    <motion.path
-                        initial={{ pathLength: 0, opacity: 0 }}
-                        animate={{ pathLength: 1, opacity: 1 }}
-                        transition={{ duration: 2.5, ease: "easeInOut" }}
-                        d="M0,80 L80,40 L160,65 L240,25 L320,55 L400,15"
-                        fill="none"
-                        stroke="#D11919"
-                        strokeWidth="3"
-                        className="drop-shadow-[0_8px_15px_rgba(209,25,25,0.2)]"
-                    />
-
-                    {/* Interactive Points */}
-                    {dataPoints.map((pt, i) => (
-                        <g key={i} onMouseEnter={() => setHoveredIndex(i)} onMouseLeave={() => setHoveredIndex(null)}>
-                            <motion.circle
-                                cx={pt.x}
-                                cy={pt.y}
-                                r={hoveredIndex === i ? 7 : 4}
-                                fill={hoveredIndex === i ? "#D11919" : "#D11919"}
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: i * 0.1 }}
-                                className="cursor-pointer transition-all duration-300"
-                            />
-                            <AnimatePresence>
-                                {hoveredIndex === i && (
-                                    <motion.g
-                                        initial={{ opacity: 0, y: -5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0 }}
-                                    >
-                                        <rect x={pt.x - 25} y={pt.y - 40} width="50" height="25" rx="6" fill="#000" />
-                                        <text x={pt.x} y={pt.y - 24} textAnchor="middle" fill="#FFF" className="text-[10px] font-black">{pt.val}</text>
-                                    </motion.g>
-                                )}
-                            </AnimatePresence>
-                        </g>
-                    ))}
-                </svg>
-
-                {/* Axis Labels */}
-                <div className="absolute bottom-6 left-12 right-12 flex justify-between text-[11px] font-black text-black/40 uppercase tracking-[0.4em]">
-                    <span>00:00</span>
-                    <span>06:00</span>
-                    <span>12:00</span>
-                    <span>18:00</span>
-                    <span>23:59</span>
-                </div>
-            </div>
-        );
-    };
-
     const StatCard = ({ stat }) => (
-        <motion.div 
-            whileHover={{ y: -5, scale: 1.02 }}
-            className="relative bg-white p-8 rounded-[2rem] border border-black/5 overflow-hidden group shadow-[0_20px_50px_rgba(0,0,0,0.05)] transition-all hover:border-[#D11919]/30"
-        >
-            <div className="absolute top-0 right-0 w-32 h-32 bg-[#D11919]/5 blur-3xl rounded-full group-hover:bg-[#D11919]/10 transition-colors" />
+        <div className="bg-white p-8 rounded-[2.5rem] border border-black/5 flex flex-col justify-between group hover:border-[#D11919]/30 transition-all shadow-sm">
             <div className="flex justify-between items-start mb-6">
-                <div className="p-3 bg-[#D11919]/5 rounded-2xl border border-[#D11919]/10 group-hover:border-[#D11919]/30 transition-colors">
-                    <stat.icon size={20} className="text-[#D11919]" />
+                <div className="p-4 bg-black/5 rounded-xl group-hover:bg-[#D11919]/10 transition-colors text-black group-hover:text-[#D11919]">
+                    <stat.icon size={20} />
                 </div>
-                <div className="flex flex-col items-end">
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
-                        <span className={`text-[10px] font-black px-3 py-1 rounded-lg border-2 ${stat.isPositive ? 'border-green-500/20 text-green-600 bg-green-50' : 'border-red-500/20 text-red-600 bg-red-50'}`}>
-                            {stat.change}
-                        </span>
-                    </div>
-                </div>
+                <span className={`text-[12px] font-black ${stat.isPositive ? 'text-green-600' : 'text-red-500'}`}>{stat.change}</span>
             </div>
-            <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-black/30 mb-1">{stat.label}</p>
-                <div className="flex items-baseline gap-2">
-                    <h3 className="text-4xl font-black tracking-tighter text-black">
-                        <AnimatedCounter value={stat.value} prefix={stat.label === 'Net Revenue' ? '₹' : ''} />
-                    </h3>
-                </div>
-            </div>
-            <div className="mt-8 h-12 w-full flex items-end gap-2 opacity-20 group-hover:opacity-100 transition-all duration-700">
-                {Array.from({ length: 15 }).map((_, i) => (
-                    <div 
-                        key={i} 
-                        className={`flex-1 rounded-full ${stat.isPositive ? 'bg-green-500' : 'bg-[#D11919]'}`} 
-                        style={{ height: `${20 + (Math.sin(i * 0.5) * 30 + 50)}%` }}
-                    />
-                ))}
-            </div>
-        </motion.div>
+            <p className="text-[11px] font-black text-black/40 uppercase tracking-widest mb-1">{stat.label}</p>
+            <h3 className="text-3xl font-black text-black tracking-tighter">{stat.value}</h3>
+        </div>
+    );
+
+    const LiveChart = () => (
+        <div className="h-64 flex items-end gap-2 w-full">
+            {Array.from({ length: 30 }).map((_, i) => (
+                <motion.div 
+                    key={i} 
+                    initial={{ height: 0 }} 
+                    animate={{ height: `${20 + Math.random() * 80}%` }} 
+                    transition={{ duration: 0.5, delay: i * 0.05 }}
+                    className="flex-1 bg-black/5 hover:bg-[#D11919] rounded-t-md transition-colors"
+                />
+            ))}
+        </div>
     );
 
     const OverviewView = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+        <motion.div key="overview" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat) => (
                     <StatCard key={stat.label} stat={stat} />
@@ -261,13 +214,13 @@ const AdminDashboard = () => {
                     {recentOrders.map((order, i) => (
                         <div key={i} className="p-8 hover:bg-white/[0.04] transition-all group cursor-pointer border-r border-white/5 last:border-0">
                             <div className="flex justify-between items-center mb-4">
-                                <span className="text-[10px] font-black text-[#D11919] tracking-widest">{order.id}</span>
-                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{order.time}</span>
+                                <span className="text-[10px] font-black text-[#D11919] tracking-widest">{order?._id?.slice(-8) || 'N/A'}</span>
+                                <span className="text-[9px] font-bold text-white/20 uppercase tracking-widest">{order?.createdAt ? new Date(order.createdAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'NEW'}</span>
                             </div>
-                            <p className="font-black text-[13px] uppercase mb-1 tracking-tight">{order.customer}</p>
-                            <p className="font-black text-xl mb-4 text-white/90">₹{order.amount}</p>
-                            <div className="inline-block px-5 py-2.5 bg-white/5 text-white/60 group-hover:bg-[#D11919] group-hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.3em] transition-all">
-                                {order.status}
+                            <p className="font-black text-[13px] uppercase mb-1 tracking-tight truncate max-w-[120px]">{order?.user?.name || 'Guest User'}</p>
+                            <p className="font-black text-xl mb-4 text-white/90">₹{order?.totalPrice?.toLocaleString()}</p>
+                            <div className={`inline-block px-5 py-2.5 bg-white/5 text-white/60 group-hover:bg-[#D11919] group-hover:text-white rounded-xl text-[9px] font-black uppercase tracking-[0.3em] transition-all`}>
+                                {order?.status}
                             </div>
                         </div>
                     ))}
@@ -277,7 +230,7 @@ const AdminDashboard = () => {
     );
 
     const ProductsView = () => (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+        <motion.div key="products" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="flex justify-between items-center bg-white p-8 rounded-[2.5rem] border border-black/5 shadow-sm">
                 <div className="relative flex-grow max-w-xl">
                     <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-black/20" size={20} />
@@ -291,7 +244,7 @@ const AdminDashboard = () => {
                 </div>
                 <div className="flex gap-4 ml-6">
                     <button className="p-4 bg-white/5 rounded-2xl hover:bg-white/10 transition-colors"><Filter size={20}/></button>
-                    <button className="bg-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#D11919] transition-all shadow-xl">New Item</button>
+                    <button onClick={() => setIsAddProductOpen(true)} className="bg-black text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#D11919] transition-all shadow-xl">New Item</button>
                 </div>
             </div>
 
@@ -300,16 +253,20 @@ const AdminDashboard = () => {
                     <motion.div 
                         layout
                         key={product.id}
-                        className="bg-white border border-black/5 rounded-[2.5rem] p-8 hover:border-[#D11919]/50 transition-all group relative overflow-hidden shadow-lg shadow-black/[0.02]"
+                        className={`bg-white border border-black/5 rounded-[2.5rem] p-8 hover:border-[#D11919]/50 transition-all group relative overflow-hidden shadow-lg shadow-black/[0.02] ${product.disabled ? 'opacity-50 grayscale' : ''}`}
                     >
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="p-2 bg-black/5 rounded-lg hover:text-[#D11919]"><Edit3 size={14}/></button>
-                            <button onClick={() => setProducts(products.filter(item => item.id !== product.id))} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"><Trash2 size={14}/></button>
+                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <button onClick={() => toggleProductStatus(product.id)} className="p-2 bg-black/5 rounded-lg hover:text-[#D11919]" title={product.disabled ? "Enable Product" : "Disable Product"}><EyeOff size={14}/></button>
+                            <button className="p-2 bg-black/5 rounded-lg hover:text-[#D11919]" title="Edit"><Edit3 size={14}/></button>
+                            <button onClick={() => setProducts(products.filter(item => item.id !== product.id))} className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all" title="Delete"><Trash2 size={14}/></button>
                         </div>
                         <div className="aspect-square bg-black/[0.02] rounded-2xl mb-6 p-4 overflow-hidden relative">
                             <img src={product.image} alt="" className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                             {product.isNew && (
                                 <span className="absolute top-4 left-4 px-4 py-2 bg-[#D11919] text-white text-[9px] font-black uppercase rounded-lg shadow-lg">New Release</span>
+                            )}
+                            {product.disabled && (
+                                <span className="absolute top-4 left-4 px-4 py-2 bg-black text-white text-[9px] font-black uppercase rounded-lg shadow-lg">Disabled</span>
                             )}
                         </div>
                         <div className="space-y-4">
@@ -333,6 +290,17 @@ const AdminDashboard = () => {
             </div>
         </motion.div>
     );
+
+    if (loading || !user) {
+        return (
+            <div className="h-screen w-full flex items-center justify-center bg-white">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="w-16 h-16 border-4 border-[#D11919] border-t-transparent rounded-full animate-spin" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-black/40">Syncing System Data...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen bg-[#FDFDFD] text-black overflow-hidden font-sans fixed inset-0 z-[1000]">
@@ -431,24 +399,24 @@ const AdminDashboard = () => {
                     </div>
 
                     <AnimatePresence mode="wait">
-                        {activeTab === 'Overview' && <OverviewView key="overview" />}
-                        {activeTab === 'Products' && <ProductsView key="products" />}
+                        {activeTab === 'Overview' && <OverviewView />}
+                        {activeTab === 'Products' && <ProductsView />}
                         {activeTab === 'Orders' && (
                             <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                                 <div className="grid gap-4">
                                     {recentOrders.map((order, i) => (
                                         <div key={i} className="bg-white border border-black/5 p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-center group hover:border-[#D11919]/30 transition-all shadow-sm">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-14 h-14 bg-black/5 rounded-2xl flex items-center justify-center font-black text-[#D11919]">#{order.id.split('-')[1]}</div>
+                                                <div className="w-14 h-14 bg-black/5 rounded-2xl flex items-center justify-center font-black text-[#D11919]">#{order?._id ? order._id.slice(-4).toUpperCase() : 'N/A'}</div>
                                                 <div>
-                                                    <h4 className="font-black text-lg uppercase tracking-tight text-black">{order.customer}</h4>
-                                                    <p className="text-[11px] font-bold text-black/30 uppercase tracking-widest">{order.time} // TRNS_GATEWAY_01</p>
+                                                    <h4 className="font-black text-lg uppercase tracking-tight text-black">{order?.user?.name || 'Guest User'}</h4>
+                                                    <p className="text-[11px] font-bold text-black/30 uppercase tracking-widest">{order?.createdAt ? new Date(order.createdAt).toLocaleString() : 'Recent'} // {order?.paymentMethod || 'Online'}</p>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-16 mt-8 md:mt-0">
                                                 <div className="text-right">
                                                     <p className="text-[12px] font-black text-black/20 uppercase tracking-[0.2em]">Total Amount</p>
-                                                    <p className="font-black text-2xl text-black">₹{order.amount}</p>
+                                                    <p className="font-black text-2xl text-black">₹{order.totalPrice?.toLocaleString()}</p>
                                                 </div>
                                                 <div className={`px-6 py-3 rounded-xl text-[12px] font-black uppercase tracking-widest border-2 ${
                                                     order.status === 'Delivered' ? 'border-green-500/20 text-green-600 bg-green-50' : 
@@ -459,7 +427,7 @@ const AdminDashboard = () => {
                                                 </div>
                                                 {(order.status === 'Pending' || order.status === 'Processing') && (
                                                     <button 
-                                                        onClick={() => handleAcceptOrder(order.id)}
+                                                        onClick={() => handleAcceptOrder(order._id)}
                                                         className="px-10 py-5 bg-black text-white rounded-xl text-[12px] font-black uppercase tracking-widest hover:bg-[#D11919] transition-all shadow-xl"
                                                     >
                                                         Review & Accept
@@ -469,32 +437,32 @@ const AdminDashboard = () => {
                                             </div>
                                         </div>
                                     ))}
+                                    {recentOrders.length === 0 && (
+                                        <div className="text-center py-20 bg-black/5 rounded-[2.5rem] border-2 border-dashed border-black/10">
+                                            <p className="text-[11px] font-black text-black/20 uppercase tracking-[0.3em]">No orders found in database</p>
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         )}
                         {activeTab === 'Customers' && (
                             <motion.div key="customers" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {[
-                                    { name: 'Rahul Sharma', email: 'rahul@stepup.com', orders: 12, spent: '₹45,200', tier: 'V.I.P' },
-                                    { name: 'Priya Singh', email: 'priya@icloud.com', orders: 5, spent: '₹18,900', tier: 'PRO' },
-                                    { name: 'Amit Patel', email: 'amit.p@gmail.com', orders: 2, spent: '₹5,400', tier: 'BASE' },
-                                    { name: 'Neha Gupta', email: 'neha@stepup.com', orders: 8, spent: '₹22,100', tier: 'PRO' },
-                                ].map((user, i) => (
+                                {customers.map((customer, i) => (
                                     <div key={i} className="bg-white border border-black/5 p-8 rounded-[2.5rem] group hover:border-[#D11919]/30 transition-all shadow-sm">
                                         <div className="flex justify-between items-start mb-8">
-                                            <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center font-black text-2xl text-black/20 group-hover:bg-[#D11919] group-hover:text-white transition-all">
-                                                {user.name.split(' ').map(n=>n[0]).join('')}
+                                            <div className="w-16 h-16 rounded-2xl bg-black/5 flex items-center justify-center font-black text-2xl text-black/20 group-hover:bg-[#D11919] group-hover:text-white transition-all overflow-hidden">
+                                                {customer.avatar ? <img src={customer.avatar} className="w-full h-full object-cover" alt="" /> : (customer.name || 'Customer').split(' ').map(n=>n[0]).join('')}
                                             </div>
                                             <span className={`text-[9px] font-black px-4 py-2 rounded-lg border-2 ${
-                                                user.tier === 'V.I.P' ? 'border-purple-200 text-purple-600 bg-purple-50' : 'border-black/5 text-black/40'
-                                            }`}>{user.tier}</span>
+                                                customer.role === 'admin' ? 'border-red-200 text-red-600 bg-red-50' : 'border-black/5 text-black/40'
+                                            }`}>{customer.role?.toUpperCase()}</span>
                                         </div>
-                                        <h4 className="font-black text-2xl uppercase tracking-tighter mb-2 text-black">{user.name}</h4>
-                                        <p className="text-[13px] font-bold text-black/40 uppercase tracking-[0.2em] mb-12">{user.email}</p>
+                                        <h4 className="font-black text-2xl uppercase tracking-tighter mb-2 text-black">{customer.name}</h4>
+                                        <p className="text-[13px] font-bold text-black/40 uppercase tracking-[0.2em] mb-12 truncate">{customer.email}</p>
                                         <div className="pt-10 border-t border-black/5 flex justify-between items-center">
                                             <div>
-                                                <p className="text-[11px] font-black text-black/20 uppercase tracking-widest">Total Investment</p>
-                                                <p className="font-black text-xl text-black">{user.spent}</p>
+                                                <p className="text-[11px] font-black text-black/20 uppercase tracking-widest">Customer ID</p>
+                                                <p className="font-black text-xs text-black truncate max-w-[150px]">{customer._id}</p>
                                             </div>
                                             <button className="text-[12px] font-black uppercase text-[#D11919] tracking-widest border-b-2 border-transparent hover:border-[#D11919] transition-all">Profile</button>
                                         </div>
@@ -592,6 +560,56 @@ const AdminDashboard = () => {
                     </AnimatePresence>
                 </div>
             </div>
+
+            {/* Add Product Modal */}
+            <AnimatePresence>
+                {isAddProductOpen && (
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[2000] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden"
+                        >
+                            <div className="p-8 border-b border-black/5 flex justify-between items-center bg-black/[0.02]">
+                                <h3 className="text-xl font-black uppercase tracking-tighter">Add New Product</h3>
+                                <button onClick={() => setIsAddProductOpen(false)} className="p-2 bg-black/5 rounded-lg hover:bg-black/10 transition-colors"><X size={20}/></button>
+                            </div>
+                            <form onSubmit={handleAddProduct} className="p-8 space-y-6">
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="col-span-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Product Name</label>
+                                        <input required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} type="text" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="E.g. StepUp AirMax" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Brand</label>
+                                        <input required value={newProduct.brand} onChange={e => setNewProduct({...newProduct, brand: e.target.value})} type="text" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="Nike" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Category</label>
+                                        <input required value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} type="text" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="Running" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Price (₹)</label>
+                                        <input required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} type="number" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="4999" />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Stock</label>
+                                        <input required value={newProduct.stock} onChange={e => setNewProduct({...newProduct, stock: parseInt(e.target.value)})} type="number" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="50" />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-black/40 mb-2 block">Image URL</label>
+                                        <input required value={newProduct.image} onChange={e => setNewProduct({...newProduct, image: e.target.value})} type="url" className="w-full bg-black/5 border border-transparent rounded-xl px-5 py-4 font-bold text-sm focus:bg-white focus:border-[#D11919] outline-none transition-all" placeholder="https://..." />
+                                    </div>
+                                </div>
+                                <div className="pt-6">
+                                    <button type="submit" className="w-full bg-black text-white px-8 py-5 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#D11919] transition-all shadow-xl">Create Item</button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

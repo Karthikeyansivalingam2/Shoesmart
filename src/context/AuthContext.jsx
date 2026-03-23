@@ -8,34 +8,63 @@ export const AuthProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : null;
     });
 
-    const login = (userData) => {
-        const { email, password } = userData;
+    const login = async (userData) => {
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userData.email, password: userData.password })
+            });
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.message || 'Login failed');
+            }
 
-        let role = 'customer';
-        let name = userData.name || 'John Doe';
-
-        // Check Hardcoded Credentials
-        if (email === 'admin' && password === 'admin123') {
-            role = 'admin';
-            name = 'Super Admin';
-        } else if (email === 'delivery' && password === 'delivery123') {
-            role = 'delivery';
-            name = 'Vikram Delivery';
-        } else if (email.includes('admin')) {
-            role = 'admin'; // Keep keyword support for flexibility
-        } else if (email.includes('delivery')) {
-            role = 'delivery';
+            // Backend doesn't provide avatar by default, but UI expects it
+            const userObj = {
+                ...data,
+                avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop',
+                id: data._id
+            };
+            
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
+            return userObj;
+        } catch (error) {
+            throw error;
         }
+    };
 
-        const userObj = {
-            name: name,
-            email: email.includes('@') ? email : `${email}@stepup.com`,
-            role: role,
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop',
-            id: 'USR' + Math.floor(Math.random() * 1000)
-        };
-        setUser(userObj);
-        localStorage.setItem('user', JSON.stringify(userObj));
+    const signup = async (userData) => {
+        try {
+            const res = await fetch('http://localhost:5000/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    name: userData.name, 
+                    email: userData.email, 
+                    password: userData.password 
+                })
+            });
+            const data = await res.json();
+            
+            if (!res.ok) {
+                throw new Error(data.message || 'Registration failed');
+            }
+
+            const userObj = {
+                ...data,
+                avatar: data.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop',
+                id: data._id
+            };
+            
+            setUser(userObj);
+            localStorage.setItem('user', JSON.stringify(userObj));
+            return userObj;
+        } catch (error) {
+            throw error;
+        }
     };
 
     const logout = () => {
@@ -43,8 +72,19 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
     };
 
+    const directLogin = (userData) => {
+        const userObj = {
+            ...userData,
+            role: userData.role || 'customer',
+            id: userData.id || Date.now().toString(),
+            token: 'mock-admin-token-' + Date.now()
+        };
+        setUser(userObj);
+        localStorage.setItem('user', JSON.stringify(userObj));
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, directLogin, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

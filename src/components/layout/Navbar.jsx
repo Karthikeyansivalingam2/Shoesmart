@@ -46,7 +46,7 @@ const Navbar = () => {
                     >
                         <div className="w-4 h-1 bg-white rotate-45" />
                     </motion.div>
-                    <span>STEP<span className="text-accent">UP</span></span>
+                    <span>Shoe<span className="text-accent">Mart</span></span>
                 </Link>
 
                 {/* Desktop Links */}

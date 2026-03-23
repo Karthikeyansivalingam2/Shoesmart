@@ -1,102 +1,74 @@
 const express = require('express');
 const router = express.Router();
-const fs = require('fs');
-const path = require('path');
+const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const usersFilePath = path.join(__dirname, '../data/users.json');
-
-// Helper to read users
-const getUsers = () => {
-    try {
-        if (!fs.existsSync(usersFilePath)) {
-            fs.writeFileSync(usersFilePath, '[]');
-            return [];
-        }
-        const data = fs.readFileSync(usersFilePath, 'utf8');
-        return data ? JSON.parse(data) : [];
-    } catch (err) {
-        console.error('Error reading users file:', err);
-        return [];
-    }
+const generateToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
-// Helper to save users
-const saveUsers = (users) => {
-    try {
-        fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
-    } catch (err) {
-        console.error('Error saving users file:', err);
-    }
-};
+const { protect, authorize } = require('../middleware/authMiddleware');
 
 // @route   POST /api/auth/register
 router.post('/register', async (req, res) => {
+    const { name, email, password, role } = req.body;
     try {
-        const { name, email, password, role } = req.body;
-        const users = getUsers();
+        const userExists = await User.findOne({ email });
+        if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-        if (users.find(u => u.email === email)) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = {
-            id: 'USR' + Date.now(),
+        const user = await User.create({
             name,
             email,
             password: hashedPassword,
-            role: role || 'customer',
-            avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop'
-        };
+            role: role || 'customer'
+        });
 
-        users.push(newUser);
-        saveUsers(users);
-
-        const token = jwt.sign({ id: newUser.id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        const { password: _, ...userWithoutPassword } = newUser;
-        res.status(201).json({ token, user: userWithoutPassword });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        if (user) {
+            res.status(201).json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                token: generateToken(user._id)
+            });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
 // @route   POST /api/auth/login
 router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
     try {
-        const { email, password } = req.body;
-        const users = getUsers();
-
-        // Support for hardcoded admin/delivery if needed
-        let user = users.find(u => u.email === email);
-
-        if (!user) {
-            // Check for hardcoded admin/delivery for easy testing
-            if (email === 'admin' && password === 'admin123') {
-                user = { id: 'ADM001', name: 'Super Admin', email: 'admin@stepup.com', role: 'admin' };
-            } else if (email === 'delivery' && password === 'delivery123') {
-                user = { id: 'DLV001', name: 'Vikram Delivery', email: 'delivery@stepup.com', role: 'delivery' };
-            } else {
-                return res.status(400).json({ message: 'Invalid credentials' });
-            }
-
-            // For hardcoded users, we just return a token directly without bcrypt check
-            const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-            return res.json({ token, user });
+        const user = await User.findOne({ email });
+        if (user && (await bcrypt.compare(password, user.password))) {
+            res.json({
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                token: generateToken(user._id)
+            });
+        } else {
+            res.status(401).json({ message: 'Invalid email or password' });
         }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: 'Invalid credentials' });
-        }
-
-        const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        const { password: _, ...userWithoutPassword } = user;
-        res.json({ token, user: userWithoutPassword });
-    } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+// @route   GET /api/auth/users
+router.get('/users', protect, authorize('admin'), async (req, res) => {
+    try {
+        const users = await User.find({}).select('-password');
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
 });
 
