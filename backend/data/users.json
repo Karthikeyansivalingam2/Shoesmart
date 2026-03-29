@@ -1,0 +1,42 @@
+[
+  {
+    "id": "USR1772354132196",
+    "name": "Verification User",
+    "email": "verify@example.com",
+    "password": "$2b$10$G89lKTJganD1mK7j2eGLGeF6x2BVdCcZbHaEm2PqVPxUN9YFJniyS",
+    "role": "customer",
+    "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
+  },
+  {
+    "id": "USR1774173574505",
+    "name": "karthikeyan",
+    "email": "karthikeyansivalingam2006@gmail.com",
+    "password": "$2b$10$GfiBq6efQJyhYeHZ2nDMTOTWQ.UqDS7DsfU38Heg2JKGORs7mAtXO",
+    "role": "customer",
+    "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
+  },
+  {
+    "id": "USR1774173739398",
+    "name": "karthikeyans",
+    "email": "karthikeyan006@gmail.com",
+    "password": "$2b$10$doSU.0FUdxFQqEpHmPI0Kej1o6CWu9tWbRvviluiDVM.Uxf8vlr9e",
+    "role": "customer",
+    "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
+  },
+  {
+    "id": "USR1774173833867",
+    "name": "karthikeyans",
+    "email": "karthik@gmail.com",
+    "password": "$2b$10$EVN7IUsEdZjuKyWQcLHyWe.iCba3.iOV.WXfjjV7CkhZgeuNPDLDe",
+    "role": "customer",
+    "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
+  },
+  {
+    "id": "USR1774174421013",
+    "name": "hari",
+    "email": "hari@gmail.com",
+    "password": "$2b$10$n/0NKIi8b00C0NZKjwMAaurN1DCGW7d3fOPj7Vrt3jzRukYU.kcYa",
+    "role": "customer",
+    "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop"
+  }
+]

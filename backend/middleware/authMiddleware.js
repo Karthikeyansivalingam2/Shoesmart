@@ -6,6 +6,7 @@ const protect = async (req, res, next) => {
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
         try {
             token = req.headers.authorization.split(' ')[1];
+<<<<<<< HEAD
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.user = await User.findById(decoded.id).select('-password');
             next();
@@ -14,6 +15,32 @@ const protect = async (req, res, next) => {
         }
     }
     if (!token) res.status(401).json({ message: 'Not authorized, no token' });
+=======
+            
+            // Allow Mock Admin Login Bypass
+            if (token && token.startsWith('mock-admin-token')) {
+                req.user = { 
+                    _id: '000000000000000000000001', 
+                    name: 'Super Admin', 
+                    email: 'admin', 
+                    role: 'admin' 
+                };
+                return next();
+            }
+
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.user = await User.findById(decoded.id).select('-password');
+            if (!req.user) {
+                return res.status(401).json({ message: 'User not found' });
+            }
+            next();
+        } catch (error) {
+            return res.status(401).json({ message: 'Not authorized, token failed' });
+        }
+    } else {
+        return res.status(401).json({ message: 'Not authorized, no token' });
+    }
+>>>>>>> 8795f6cb2054a9f14f394ce82d1acf8e0772dd14
 };
 
 const authorize = (...roles) => {
