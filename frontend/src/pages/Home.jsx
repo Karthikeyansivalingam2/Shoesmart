@@ -37,29 +37,63 @@ const Home = () => {
         >
             <Hero />
 
-            {/* Features Section */}
-            <section className="py-20 bg-secondary/20">
-                <div className="container mx-auto px-6 grid md:grid-cols-3 gap-12">
-                    {[
-                        { icon: Zap, title: 'FAST DELIVERY', desc: 'Get your shoes in 2-3 business days with express shipping.' },
-                        { icon: Shield, title: 'SECURE PAYMENT', desc: '100% secure payment processing with encrypted transactions.' },
-                        { icon: RotateCcw, title: 'EASY RETURNS', desc: 'Not the right fit? Return within 30 days for a full refund.' }
-                    ].map((feature, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.2 }}
-                            className="flex flex-col items-center text-center space-y-4 p-8 glass rounded-3xl"
-                        >
-                            <div className="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center">
-                                <feature.icon size={32} />
-                            </div>
-                            <h3 className="font-black tracking-widest text-sm">{feature.title}</h3>
-                            <p className="text-foreground/60 text-sm">{feature.desc}</p>
-                        </motion.div>
-                    ))}
+            {/* Premium Features Section */}
+            <section className="py-32 relative overflow-hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-foreground/5 to-transparent" />
+                
+                <div className="container mx-auto px-6">
+                    <div className="grid md:grid-cols-3 gap-10">
+                        {[
+                            { 
+                                icon: Zap, 
+                                title: 'Instant Response', 
+                                desc: 'Our smart-lace system adapts to your movement in real-time.',
+                                accent: 'text-yellow-500' 
+                            },
+                            { 
+                                icon: Shield, 
+                                title: 'Kinetic Security', 
+                                desc: 'Biometric locking ensures your pair is uniquely yours.',
+                                accent: 'text-blue-500' 
+                            },
+                            { 
+                                icon: RotateCcw, 
+                                title: 'Infinite Growth', 
+                                desc: '30-day exchange for any size, even if you’ve worn them.',
+                                accent: 'text-accent' 
+                            }
+                        ].map((feature, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 30 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: i * 0.2, duration: 0.8 }}
+                                className="group relative p-10 rounded-[3rem] glass hover:bg-white/5 transition-all duration-500 border-white/5 overflow-hidden"
+                            >
+                                {/* Ambient Glow */}
+                                <div className="absolute -top-20 -right-20 w-40 h-40 bg-accent/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                
+                                <div className="relative z-10 space-y-6">
+                                    <div className={`w-16 h-16 rounded-2xl bg-foreground/5 flex items-center justify-center transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 ${feature.accent.replace('text', 'bg-opacity-10 text')}`}>
+                                        <feature.icon size={32} strokeWidth={1.5} />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h3 className="text-lg font-black tracking-widest uppercase italic">{feature.title}</h3>
+                                        <p className="text-foreground/40 text-sm font-medium leading-relaxed">
+                                            {feature.desc}
+                                        </p>
+                                    </div>
+                                    
+                                    <motion.div 
+                                        initial={{ width: 0 }}
+                                        whileInView={{ width: '40px' }}
+                                        className="h-1 bg-accent/20 rounded-full group-hover:bg-accent group-hover:w-full transition-all duration-500"
+                                    />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
             </section>
 
@@ -93,40 +127,101 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* CTA Section */}
-            <section className="py-24 px-6">
+            {/* Premium CTA Section */}
+            <section className="py-24 px-6 relative overflow-hidden">
+                {/* Background Ambient Glows */}
+                <div className="absolute top-1/2 left-1/4 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[150px] -z-10 animate-pulse" />
+                
                 <div className="container mx-auto">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
+                        initial={{ opacity: 0, y: 50 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="relative h-[500px] rounded-[3rem] overflow-hidden bg-foreground text-background"
+                        transition={{ duration: 1, ease: "circOut" }}
+                        className="relative h-[600px] rounded-[4rem] overflow-hidden group shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] border border-foreground/5 shadow-2xl"
                     >
-                        <img
-                            src="/images/urban_sneakers_feet.png"
-                            className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay"
-                            alt="Promotion"
+                        {/* Immersive Background */}
+                        <motion.img
+                            initial={{ scale: 1.1 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 2 }}
+                            src="/images/premium_cta_background.png"
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-[5000ms]"
+                            alt="ShoeSmart Design Studio"
                         />
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-8">
-                            <motion.h2
-                                initial={{ y: 30, opacity: 0 }}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                        <div className="absolute inset-0 bg-accent/20 mix-blend-overlay opacity-50" />
+                        
+                        {/* Content Overlay */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-10 z-20">
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                whileInView={{ scale: 1, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass border-white/10"
+                            >
+                                <Zap size={14} className="text-accent fill-accent" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/80">Membership Only</span>
+                            </motion.div>
+
+                            <div className="space-y-4 max-w-4xl">
+                                <motion.h2
+                                    initial={{ y: 30, opacity: 0 }}
+                                    whileInView={{ y: 0, opacity: 1 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: 0.5 }}
+                                    className="text-6xl md:text-8xl font-black tracking-tighter uppercase leading-[0.8] text-white italic"
+                                >
+                                    Join the <br /> 
+                                    <span className="text-mask bg-gradient-to-r from-accent via-white to-accent animate-gradient">Revolution</span>
+                                </motion.h2>
+                                <motion.p 
+                                    initial={{ opacity: 0 }}
+                                    whileInView={{ opacity: 1 }}
+                                    transition={{ delay: 0.8 }}
+                                    className="max-w-xl text-lg md:text-xl text-white/60 font-medium mx-auto leading-relaxed"
+                                >
+                                    Smarter technology, better comfort, and the style you deserve. Subscribe to the digital footwear evolution.
+                                </motion.p>
+                            </div>
+
+                            <motion.div
+                                initial={{ y: 20, opacity: 0 }}
                                 whileInView={{ y: 0, opacity: 1 }}
-                                viewport={{ once: true }}
-                                className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none"
+                                transition={{ delay: 1 }}
+                                className="flex flex-col md:flex-row gap-6 w-full max-w-md"
                             >
-                                Join the <br /> <span className="text-accent">Revolution</span>
-                            </motion.h2>
-                            <p className="max-w-xl text-lg text-background/80 font-medium">
-                                Smarter technology, better comfort, and the style you deserve. Sign up for our newsletter and get 20% off your first order.
-                            </p>
-                            <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="bg-accent text-white px-10 py-5 rounded-full font-black uppercase tracking-widest"
+                                <div className="flex-grow relative group/input">
+                                    <input 
+                                        type="email" 
+                                        placeholder="your@email.smart"
+                                        className="w-full bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl px-6 py-5 text-white placeholder:text-white/20 outline-none focus:border-accent/50 transition-colors"
+                                    />
+                                    <div className="absolute inset-0 -z-10 bg-accent/5 rounded-2xl blur-xl opacity-0 group-focus-within/input:opacity-100 transition-opacity" />
+                                </div>
+                                <motion.button
+                                    whileHover={{ scale: 1.05, backgroundColor: '#fff', color: '#000' }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="bg-accent text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-accent/20 transition-all border border-accent"
+                                >
+                                    SUBSCRIBE
+                                </motion.button>
+                            </motion.div>
+                            
+                            {/* Scroll Indicator */}
+                            <motion.div 
+                                animate={{ y: [0, 10, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                                className="absolute bottom-10 left-1/2 -translate-x-1/2 opacity-20"
                             >
-                                SUBSCRIBE NOW
-                            </motion.button>
+                                <ArrowRight size={24} className="rotate-90" strokeWidth={1} />
+                            </motion.div>
                         </div>
+                        
+                        {/* Decorative Glass Elements */}
+                        <div className="absolute top-1/2 -left-20 w-80 h-80 glass rounded-[4rem] -rotate-12 opacity-10 blur-xl -z-10 group-hover:rotate-0 transition-transform duration-1000" />
+                        <div className="absolute -bottom-20 -right-20 w-96 h-96 glass rounded-full opacity-10 blur-2xl -z-10 group-hover:scale-110 transition-transform duration-1000" />
                     </motion.div>
                 </div>
             </section>

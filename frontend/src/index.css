@@ -19,27 +19,27 @@
     --accent: 0 0% 9%;
     /* Minimalist Black Accent */
     --accent-foreground: 0 0% 100%;
+    --border: 0 0% 92%; /* Light Gray Border */
   }
 
   .dark {
-    --background: 0 0% 7%;
-    /* Very Dark Gray/Black */
-    --foreground: 0 0% 98%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --accent: 0 0% 98%;
-    /* White Accent for Dark Mode */
-    --accent-foreground: 0 0% 9%;
+    --background: 240 10% 4%; /* Deep Midnight Black */
+    --foreground: 0 0% 100%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 240 10% 4%;
+    --secondary: 240 10% 12%; /* Darker Gray */
+    --secondary-foreground: 0 0% 100%;
+    --accent: 0 84% 60%; /* Vibrant Premium Red */
+    --accent-foreground: 0 0% 100%;
+    --border: 240 10% 12%;
   }
 }
 
 @layer base {
   * {
-    @apply border-secondary;
+    @apply border-border;
   }
 
   body {
@@ -50,7 +50,11 @@
 
 /* Glassmorphism utility */
 .glass {
-  @apply bg-background/60 backdrop-blur-md border border-foreground/10;
+  @apply bg-background/40 backdrop-blur-xl border border-white/5;
+}
+
+.glass-dark {
+  @apply bg-black/40 backdrop-blur-xl border border-white/10;
 }
 
 /* Custom Scrollbar */

@@ -4,8 +4,10 @@ import { ShoppingCart, Star, Eye, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { useTheme } from '../../context/ThemeContext';
 
 const ProductCard = ({ product, index }) => {
+    const { isDarkMode } = useTheme();
     const [isHovered, setIsHovered] = useState(false);
     const { addToCart } = useCart();
     const { isInWishlist, toggleWishlist } = useWishlist();
@@ -60,7 +62,7 @@ const ProductCard = ({ product, index }) => {
             </button>
             {/* Badge */}
             {product.isNew && (
-                <span className="absolute top-6 left-6 z-10 bg-accent text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg shadow-accent/20">
+                <span className="absolute top-6 left-6 z-10 bg-accent text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full shadow-lg shadow-accent/40 border border-white/10">
                     New Arrival
                 </span>
             )}
@@ -126,7 +128,7 @@ const ProductCard = ({ product, index }) => {
                             e.preventDefault();
                             addToCart(product, product.sizes?.[0] || '8');
                         }}
-                        className="flex items-center gap-3 bg-foreground text-background px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors hover:bg-accent hover:text-white"
+                        className={`flex items-center gap-3 ${isDarkMode ? 'bg-white text-black hover:bg-accent hover:text-white' : 'bg-foreground text-background hover:bg-accent hover:text-white'} px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-colors tracking-widest`}
                     >
                         <ShoppingCart size={16} />
                         <span>ADD TO BAG</span>
